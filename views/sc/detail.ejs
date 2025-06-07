@@ -1,0 +1,124 @@
+<div class="row" id="sc-detail-page">
+    <div class="col-md-8">
+        <h1><%= sc.title %></h1>
+        <p class="text-muted">
+            <i class="fas fa-folder"></i> Kategori: <%= sc.category %> |
+            <i class="fas fa-user-tie"></i> Seller: <%= sc.seller ? sc.seller.name : 'N/A' %>
+            <% if (sc.seller && sc.seller.email) { %>
+                (<a href="mailto:<%= sc.seller.email %>"><i class="fas fa-envelope"></i> Kontak Seller</a>)
+            <% } %>
+        </p>
+
+        <% if (sc.screenshots && sc.screenshots.length > 0) { %>
+            <h4><i class="fas fa-images"></i> Screenshots</h4>
+            <div class="row row-cols-2 row-cols-md-3 g-3 mb-3">
+                <% sc.screenshots.forEach(ss_path => { %>
+                    <div class="col">
+                        <a href="/<%= ss_path.replace(/\\/g, '/') %>" data-bs-toggle="lightbox" data-gallery="sc-gallery">
+                            <img src="/<%= ss_path.replace(/\\/g, '/') %>" class="img-fluid rounded" alt="Screenshot <%= sc.title %>">
+                        </a>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="mb-3 p-3 border rounded text-center bg-light">
+                 <i class="fas fa-image fa-3x text-muted"></i>
+                 <p class="mt-2 text-muted">Belum ada screenshot.</p>
+            </div>
+        <% } %>
+
+
+        <h4><i class="fas fa-info-circle"></i> Deskripsi</h4>
+        <p><%- sc.description.replace(/\n/g, '<br>') %></p>
+
+        <% if (sc.techStack && sc.techStack.length > 0) { %>
+        <h4><i class="fas fa-cogs"></i> Teknologi yang Digunakan</h4>
+        <p>
+            <% sc.techStack.forEach(tech => { %>
+            <span class="badge bg-secondary me-1"><%= tech %></span>
+            <% }) %>
+        </p>
+        <% } %>
+
+        <% if (sc.demoUrl) { %>
+        <p><a href="<%= sc.demoUrl %>" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-external-link-alt"></i> Lihat Demo</a></p>
+        <% } %>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Opsi Pembelian/Sewa</h4>
+                <hr>
+                <% if (existingOrder && existingOrder.paymentStatus === 'completed') { %>
+                    <% if (existingOrder.orderType === 'buy') { %>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Anda telah membeli source code ini.
+                            <br>
+                            <% if (sc.filePath) { %>
+                            <a href="/<%= sc.filePath.replace(/\\/g, '/') %>" class="btn btn-success btn-sm mt-2" download>
+                                <i class="fas fa-download"></i> Unduh Sekarang (<%= sc.filePath.split('.').pop().toUpperCase() %>)
+                            </a>
+                            <% } else { %>
+                                <button class="btn btn-success btn-sm mt-2 disabled"><i class="fas fa-download"></i> File Tidak Tersedia</button>
+                            <% } %>
+                        </div>
+                    <% } else if (existingOrder.orderType === 'rent') { %>
+                        <div class="alert alert-info">
+                            <i class="fas fa-calendar-check"></i> Anda sedang menyewa source code ini hingga
+                            <%= new Date(existingOrder.rentalEndDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) %>.
+                            <% if (sc.filePath && new Date() <= new Date(existingOrder.rentalEndDate)) { %>
+                                <br><a href="/<%= sc.filePath.replace(/\\/g, '/') %>" class="btn btn-info btn-sm mt-2" download><i class="fas fa-file-code"></i> Unduh File Sewa</a>
+                            <% } else if (sc.filePath) { %>
+                                <br><button class="btn btn-info btn-sm mt-2 disabled"><i class="fas fa-file-code"></i> Masa Sewa Habis</button>
+                            <% } %>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <form action="/api/orders" method="POST">
+                        <input type="hidden" name="scId" value="<%= sc._id %>">
+                        
+                        <% if (!sc.is_for_rent_only && sc.price_buy) { %>
+                        <div class="mb-3 p-3 border rounded">
+                            <h5><i class="fas fa-shopping-cart"></i> Beli Source Code</h5>
+                            <p class="fs-4 fw-bold text-success">Rp <%= sc.price_buy.toLocaleString('id-ID') %></p>
+                            <p><small class="text-muted">Lisensi permanen, dapatkan source code lengkap.</small></p>
+                            <button type="submit" name="orderType" value="buy" class="btn btn-success w-100 <%= !currentUser ? 'disabled' : '' %>">
+                                <i class="fas fa-dollar-sign"></i> Beli Sekarang
+                            </button>
+                        </div>
+                        <% } %>
+
+                        <% if (sc.rental_options && sc.rental_options.length > 0) { %>
+                        <div class="mt-3 p-3 border rounded">
+                            <h5><i class="fas fa-calendar-alt"></i> Sewa Source Code</h5>
+                             <% sc.rental_options.forEach((option, index) => { %>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="rentalOptionIndex" id="rentalOption<%= index %>" value="<%= index %>" <%= index === 0 ? 'checked' : '' %>>
+                                  <label class="form-check-label" for="rentalOption<%= index %>">
+                                    <%= option.duration %> - <strong>Rp <%= option.price.toLocaleString('id-ID') %></strong>
+                                  </label>
+                                </div>
+                              <% }); %>
+                            <button type="submit" name="orderType" value="rent" class="btn btn-warning w-100 mt-2 <%= !currentUser ? 'disabled' : '' %>">
+                                <i class="fas fa-key"></i> Sewa Sekarang
+                            </button>
+                        </div>
+                        <% } %>
+                        
+                        <% if (!currentUser) { %>
+                            <p class="mt-3 text-danger"><i class="fas fa-exclamation-triangle"></i> <a href="/login?redirect=/sc/<%= sc._id %>">Login</a> atau <a href="/register?redirect=/sc/<%= sc._id %>">Register</a> untuk melakukan transaksi.</p>
+                        <% } %>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h4><i class="fas fa-comments"></i> Ulasan (Fitur Belum Tersedia)</h4>
+    <p>Fitur ulasan akan segera hadir.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bs5-lightbox@1.8.3/dist/index.bundle.min.js"></script>

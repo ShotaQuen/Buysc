@@ -1,0 +1,56 @@
+<h1><i class="fas fa-tachometer-alt"></i> Dashboard <%= user.name %></h1>
+<p>Selamat datang kembali, <%= user.role %>!</p>
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4><i class="fas fa-shopping-bag"></i> Ringkasan Pesanan Terbaru</h4>
+        <% if (userOrders && userOrders.length > 0) { %>
+            <ul class="list-group">
+                <% userOrders.forEach(order => { %>
+                    <li class="list-group-item">
+                        <strong><%= order.sourceCode ? order.sourceCode.title : 'SC Dihapus' %></strong> - <%= order.orderType === 'buy' ? 'Beli' : 'Sewa' %>
+                        <br>
+                        <small>Tanggal: <%= new Date(order.createdAt).toLocaleDateString('id-ID') %></small>
+                        <span class="badge bg-<%= order.paymentStatus === 'completed' ? 'success' : 'warning' %> float-end"><%= order.paymentStatus %></span>
+                    </li>
+                <% }); %>
+            </ul>
+            <a href="/dashboard/orders" class="btn btn-link btn-sm mt-2">Lihat Semua Pesanan <i class="fas fa-arrow-right"></i></a>
+        <% } else { %>
+            <p>Anda belum memiliki pesanan.</p>
+        <% } %>
+    </div>
+
+    <% if (user.role === 'seller' || user.role === 'admin') { %>
+    <div class="col-md-6">
+        <h4><i class="fas fa-code-branch"></i> Source Code Anda</h4>
+        <% if (userSc && userSc.length > 0) { %>
+            <ul class="list-group">
+                <% userSc.forEach(sc => { %>
+                    <li class="list-group-item">
+                        <a href="/sc/<%= sc._id %>"><%= sc.title %></a>
+                        <span class="badge bg-<%= sc.status === 'approved' ? 'success' : (sc.status === 'pending_approval' ? 'warning' : 'danger') %> float-end">
+                            <%= sc.status.replace('_', ' ') %>
+                        </span>
+                    </li>
+                <% }); %>
+            </ul>
+             <a href="/sc/add" class="btn btn-primary btn-sm mt-3"><i class="fas fa-plus-circle"></i> Tambah SC Baru</a>
+        <% } else { %>
+            <p>Anda belum menambahkan source code.</p>
+            <a href="/sc/add" class="btn btn-primary btn-sm"><i class="fas fa-plus-circle"></i> Tambah Source Code Pertama Anda</a>
+        <% } %>
+    </div>
+    <% } %>
+</div>
+
+<% if (user.role === 'admin') { %>
+<div class="mt-4">
+    <h4><i class="fas fa-cogs"></i> Panel Admin</h4>
+    <div class="list-group">
+        <a href="/admin/users" class="list-group-item list-group-item-action"><i class="fas fa-users-cog"></i> Manajemen Pengguna</a>
+        <a href="/admin/sc-management" class="list-group-item list-group-item-action"><i class="fas fa-tasks"></i> Manajemen Source Code & Approval</a>
+    </div>
+</div>
+<% } %>

@@ -1,0 +1,156 @@
+<h1><i class="fas fa-plus-circle"></i> Tambah Source Code Baru</h1>
+<hr>
+<form action="/api/sc" method="POST" id="addScForm" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="title" class="form-label">Judul Source Code <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="title" name="title" value="<%= typeof title != 'undefined' ? title : '' %>" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Deskripsi Lengkap <span class="text-danger">*</span></label>
+        <textarea class="form-control" id="description" name="description" rows="5" required><%= typeof description != 'undefined' ? description : '' %></textarea>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
+            <select class="form-select" id="category" name="category" required>
+                <option value="">Pilih Kategori...</option>
+                <option value="Web PHP" <%= (typeof category != 'undefined' && category === 'Web PHP') ? 'selected' : '' %>>Web PHP</option>
+                <option value="Aplikasi Android" <%= (typeof category != 'undefined' && category === 'Aplikasi Android') ? 'selected' : '' %>>Aplikasi Android</option>
+                <option value="Script Python" <%= (typeof category != 'undefined' && category === 'Script Python') ? 'selected' : '' %>>Script Python</option>
+                <option value="Template HTML" <%= (typeof category != 'undefined' && category === 'Template HTML') ? 'selected' : '' %>>Template HTML</option>
+                <option value="Bot Script" <%= (typeof category != 'undefined' && category === 'Bot Script') ? 'selected' : '' %>>Bot Script</option>
+                <option value="Game Unity" <%= (typeof category != 'undefined' && category === 'Game Unity') ? 'selected' : '' %>>Game Unity</option>
+                <option value="Lainnya" <%= (typeof category != 'undefined' && category === 'Lainnya') ? 'selected' : '' %>>Lainnya</option>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="tags" class="form-label">Tags (pisahkan dengan koma)</label>
+            <input type="text" class="form-control" id="tags" name="tags" value="<%= typeof tags != 'undefined' ? tags : '' %>" placeholder="e.g. php, laravel, e-commerce">
+        </div>
+    </div>
+    <div class="row">
+         <div class="col-md-6 mb-3">
+            <label for="techStack" class="form-label">Teknologi Utama (pisahkan dengan koma)</label>
+            <input type="text" class="form-control" id="techStack" name="techStack" value="<%= typeof techStack != 'undefined' ? techStack : '' %>" placeholder="e.g. PHP 8, MySQL, Bootstrap 5">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="demoUrl" class="form-label">URL Demo (Jika ada)</label>
+            <input type="url" class="form-control" id="demoUrl" name="demoUrl" value="<%= typeof demoUrl != 'undefined' ? demoUrl : '' %>" placeholder="https://demo.example.com">
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="is_for_rent_only" name="is_for_rent_only" <%= (typeof is_for_rent_only != 'undefined' && is_for_rent_only) ? 'checked' : '' %>>
+        <label class="form-check-label" for="is_for_rent_only">
+            Source Code ini hanya untuk disewa (tidak dijual)
+        </label>
+    </div>
+    
+    <div class="mb-3" id="price_buy_container">
+        <label for="price_buy_str" class="form-label">Harga Jual (Rp)</label>
+        <input type="number" class="form-control" id="price_buy_str" name="price_buy_str" min="0" step="1000" value="<%= typeof price_buy_str != 'undefined' ? price_buy_str : '' %>">
+    </div>
+
+    <h4><i class="fas fa-calendar-alt"></i> Opsi Sewa</h4>
+    <div id="rental_options_container">
+        <% if (typeof rental_options_data != 'undefined' && rental_options_data.length > 0) { %>
+            <% rental_options_data.forEach((opt, index) => { %>
+                <div class="row rental-option-item mb-2">
+                    <div class="col-md-5">
+                        <label class="form-label">Durasi Sewa</label>
+                        <select name="rental_duration[]" class="form-select">
+                            <option value="1 Minggu" <%= opt.duration === '1 Minggu' ? 'selected' : '' %>>1 Minggu</option>
+                            <option value="1 Bulan" <%= opt.duration === '1 Bulan' ? 'selected' : '' %>>1 Bulan</option>
+                            <option value="3 Bulan" <%= opt.duration === '3 Bulan' ? 'selected' : '' %>>3 Bulan</option>
+                            <option value="6 Bulan" <%= opt.duration === '6 Bulan' ? 'selected' : '' %>>6 Bulan</option>
+                            <option value="1 Tahun" <%= opt.duration === '1 Tahun' ? 'selected' : '' %>>1 Tahun</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Harga Sewa (Rp)</label>
+                        <input type="number" name="rental_price[]" class="form-control" min="0" step="1000" value="<%= opt.price %>">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-rental-option"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+    </div>
+    <button type="button" id="add_rental_option" class="btn btn-outline-primary btn-sm mb-3"><i class="fas fa-plus"></i> Tambah Opsi Sewa</button>
+    
+    <div class="mb-3">
+        <label for="sc_file" class="form-label">File Source Code (.zip, .txt, dll) <span class="text-danger">*</span></label>
+        <input type="file" class="form-control" id="sc_file" name="sc_file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain,application/octet-stream" required>
+        <small class="form-text text-muted">Maksimal 50MB.</small>
+    </div>
+    <div class="mb-3">
+        <label for="screenshots" class="form-label">Screenshot (Maks. 5 file, @5MB)</label>
+        <input type="file" class="form-control" id="screenshots" name="screenshots" multiple accept="image/*">
+    </div>
+
+    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan Source Code</button>
+    <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rentOnlyCheckbox = document.getElementById('is_for_rent_only');
+        const priceBuyContainer = document.getElementById('price_buy_container');
+        const priceBuyInput = document.getElementById('price_buy_str');
+
+        function togglePriceBuy() {
+            if (rentOnlyCheckbox.checked) {
+                priceBuyContainer.style.display = 'none';
+                priceBuyInput.removeAttribute('required');
+                priceBuyInput.value = ''; 
+            } else {
+                priceBuyContainer.style.display = 'block';
+                priceBuyInput.setAttribute('required', 'required');
+            }
+        }
+        if(rentOnlyCheckbox) {
+            rentOnlyCheckbox.addEventListener('change', togglePriceBuy);
+            togglePriceBuy(); 
+        }
+
+        const rentalOptionsContainer = document.getElementById('rental_options_container');
+        const addRentalButton = document.getElementById('add_rental_option');
+
+        if(addRentalButton) {
+            addRentalButton.addEventListener('click', function() {
+                const newItem = document.createElement('div');
+                newItem.classList.add('row', 'rental-option-item', 'mb-2');
+                newItem.innerHTML = `
+                    <div class="col-md-5">
+                        <label class="form-label visually-hidden">Durasi Sewa</label>
+                        <select name="rental_duration[]" class="form-select" required>
+                            <option value="">Pilih Durasi...</option>
+                            <option value="1 Minggu">1 Minggu</option>
+                            <option value="1 Bulan">1 Bulan</option>
+                            <option value="3 Bulan">3 Bulan</option>
+                            <option value="6 Bulan">6 Bulan</option>
+                            <option value="1 Tahun">1 Tahun</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label visually-hidden">Harga Sewa (Rp)</label>
+                        <input type="number" name="rental_price[]" class="form-control" placeholder="Harga Sewa" min="0" step="1000" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-rental-option"><i class="fas fa-trash"></i> Hapus</button>
+                    </div>
+                `;
+                rentalOptionsContainer.appendChild(newItem);
+            });
+        }
+
+        if(rentalOptionsContainer) {
+            rentalOptionsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-rental-option') || e.target.closest('.remove-rental-option')) {
+                    e.target.closest('.rental-option-item').remove();
+                }
+            });
+        }
+    });
+</script>
